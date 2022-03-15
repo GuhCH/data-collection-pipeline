@@ -3,6 +3,8 @@ from selenium.webdriver.support.ui import WebDriverWait
 from selenium.webdriver.support import expected_conditions as EC
 from selenium.webdriver.common.by import By
 from selenium.common.exceptions import TimeoutException
+from bs4 import BeautifulSoup
+import requests
 import time
 
 class scraper:
@@ -37,16 +39,47 @@ class scraper:
             result = self.driver.find_element(by=By.XPATH, value='//*[@class="ui-menu-item"]')
             result.click()
             print(f'[INFO] redirected to {self.driver.current_url}')
+            time.sleep(0.5)
         except:
             print('[ERROR] no results found')
+        
 
     # Collects all the times on the leaderboard for selected category (i.e. PBs of all players with runs on the board) + name of runner + link to VOD
     def getAllCatPBs(self):
         pass
 
+    # Switches page to next category. If on last category, returns to the initial category
+    def nextCat(self):
+        done = False
+        try:
+            misc_button = self.driver.find_element(by=By.XPATH, value='//a[@class="category category-tab active"]/following-sibling::a[1][@id="miscellaneous"]')
+            misc_button.click()
+            next_cat = self.driver.find_element(by=By.XPATH, value='//a[@class="dropdown-item category"]')
+            print('1')
+        except:
+            try:
+                next_cat = self.driver.find_element(by=By.XPATH, value='//a[@class="category category-tab active"]/following-sibling::a')
+                print('2')
+            except:
+                try:
+                    misc_button = self.driver.find_element(by=By.XPATH, value='//a[@id="miscellaneous"]')
+                    misc_button.click()
+                    next_cat = self.driver.find_element(by=By.XPATH, value='//a[@class="dropdown-item category active"]/following-sibling::a')
+                    print('3')
+                except:
+                    next_cat = self.driver.find_element(by=By.XPATH, value='//a[@class="category category-tab"]')
+                    done = True
+                    print('4')
+        next_cat.click()
+        time.sleep(0.5)
+        return done
+
 if __name__ == "__main__":
     myScraper = scraper('https://www.speedrun.com')
     myScraper.load_site()
     myScraper.search('Spyro the dragon')
-    time.sleep(3)
+    done = False
+    while done == False:
+        done = myScraper.nextCat()
+        time.sleep(1)
     myScraper.driver.quit()

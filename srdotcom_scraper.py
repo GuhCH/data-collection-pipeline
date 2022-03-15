@@ -72,14 +72,23 @@ class scraper:
                     print('4')
         next_cat.click()
         time.sleep(0.5)
-        return done
+        return done # Use this to break a loop cycling through all categories
+
+    # Gets links to all categories
+    def getCatLinks(self):
+        link_list = []
+        done = False
+        while done == False: # go next cat then store link so that specific link for initial cat is stored
+            done = self.nextCat()
+            link_list.append(self.driver.current_url)
+        return link_list
+            
+
 
 if __name__ == "__main__":
     myScraper = scraper('https://www.speedrun.com')
     myScraper.load_site()
     myScraper.search('Spyro the dragon')
-    done = False
-    while done == False:
-        done = myScraper.nextCat()
-        time.sleep(1)
+    cat_links = myScraper.getCatLinks()
+    print(cat_links)
     myScraper.driver.quit()

@@ -6,6 +6,7 @@ from selenium.common.exceptions import TimeoutException
 from bs4 import BeautifulSoup
 import requests
 import time
+import json
 
 class scraper:
     def __init__(self,URL):
@@ -46,7 +47,22 @@ class scraper:
 
     # Collects all the times on the leaderboard for selected category (i.e. PBs of all players with runs on the board) + name of runner + link to VOD
     def getAllCatPBs(self):
-        pass
+        all_runs = self.driver.find_element(by=By.XPATH, value='//table[@id="primary-leaderboard"]')
+        names = all_runs.find_elements(by=By.XPATH, value='//span[@class="nobr" or @class="username"]')
+        times = all_runs.find_elements(by=By.XPATH, value='//tr/td[@class="nobr center hidden-xs"][1]')
+        vods = all_runs.find_elements(by=By.XPATH, value='//tr/td[@class="run-video nobr center hidden-xs hidden-md-down"]')
+        all_times = ['']*len(times)
+        all_names = ['']*len(times)
+        all_vods = ['']*len(times)
+        for i in range(len(times)):
+            all_times[i] = times[i].text
+            all_names[i] = names[i].text
+            try:
+                vod_div = vods[i].find_element(by=By.TAG_NAME, value='a')
+                all_vods[i] = vod_div.get_attribute("href")
+            except:
+                all_vods[i] = None
+        return all_times, all_names, all_vods
 
     # Switches page to next category. If on last category, returns to the initial category
     def nextCat(self):
@@ -89,6 +105,11 @@ if __name__ == "__main__":
     myScraper = scraper('https://www.speedrun.com')
     myScraper.load_site()
     myScraper.search('Spyro the dragon')
-    cat_links = myScraper.getCatLinks()
-    print(cat_links)
+    # myScraper.nextCat()
+    # myScraper.getAllCatPBs()
+    pbs, players, vods = myScraper.getAllCatPBs()
+    print(pbs, players, vods)
+    
+    # cat_links = myScraper.getCatLinks()
+    # print(cat_links)
     myScraper.driver.quit()

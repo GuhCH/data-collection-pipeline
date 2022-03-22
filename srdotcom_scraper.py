@@ -4,6 +4,7 @@ from selenium.webdriver.support import expected_conditions as EC
 from selenium.webdriver.common.by import By
 from selenium.common.exceptions import TimeoutException
 from bs4 import BeautifulSoup
+import uuid
 import requests
 import time
 import json
@@ -46,23 +47,21 @@ class scraper:
         
 
     # Collects all the times on the leaderboard for selected category (i.e. PBs of all players with runs on the board) + name of runner + link to VOD
+    # and stores info in a dictionary
     def getAllCatPBs(self):
         all_runs = self.driver.find_element(by=By.XPATH, value='//table[@id="primary-leaderboard"]')
         names = all_runs.find_elements(by=By.XPATH, value='//span[@class="nobr" or @class="username"]')
         times = all_runs.find_elements(by=By.XPATH, value='//tr/td[@class="nobr center hidden-xs"][1]')
         vods = all_runs.find_elements(by=By.XPATH, value='//tr/td[@class="run-video nobr center hidden-xs hidden-md-down"]')
-        all_times = ['']*len(times)
-        all_names = ['']*len(times)
-        all_vods = ['']*len(times)
+        cat_dict = {'runs': []}
         for i in range(len(times)):
-            all_times[i] = times[i].text
-            all_names[i] = names[i].text
             try:
                 vod_div = vods[i].find_element(by=By.TAG_NAME, value='a')
-                all_vods[i] = vod_div.get_attribute("href")
+                vod_link = vod_div.get_attribute("href")
             except:
-                all_vods[i] = None
-        return all_times, all_names, all_vods
+                vod_link = None
+            cat_dict['runs'].append({'time': times[i].text, 'name': names[i].text, 'vod': vod_link})
+        return cat_dict
 
     # Switches page to next category. If on last category, returns to the initial category
     def nextCat(self):
@@ -71,21 +70,17 @@ class scraper:
             misc_button = self.driver.find_element(by=By.XPATH, value='//a[@class="category category-tab active"]/following-sibling::a[1][@id="miscellaneous"]')
             misc_button.click()
             next_cat = self.driver.find_element(by=By.XPATH, value='//a[@class="dropdown-item category"]')
-            print('1')
         except:
             try:
                 next_cat = self.driver.find_element(by=By.XPATH, value='//a[@class="category category-tab active"]/following-sibling::a')
-                print('2')
             except:
                 try:
                     misc_button = self.driver.find_element(by=By.XPATH, value='//a[@id="miscellaneous"]')
                     misc_button.click()
                     next_cat = self.driver.find_element(by=By.XPATH, value='//a[@class="dropdown-item category active"]/following-sibling::a')
-                    print('3')
                 except:
                     next_cat = self.driver.find_element(by=By.XPATH, value='//a[@class="category category-tab"]')
                     done = True
-                    print('4')
         next_cat.click()
         time.sleep(0.5)
         return done # Use this to break a loop cycling through all categories
@@ -98,6 +93,16 @@ class scraper:
             done = self.nextCat()
             link_list.append(self.driver.current_url)
         return link_list
+
+    # Gets PBs for all categories for game with links and IDs for each category, stores this info in a dictionary
+    def getAllGamePBs(self):
+        game_dict = {'category': []}
+        done = False
+        while done == False:
+            done = self.nextCat()
+            cat_dict = self.getAllCatPBs()
+            game_dict['category'].append({'id': self.driver.current_url[25:], 'uuid': str(uuid.uuid4()), 'link': self.driver.current_url, 'runs': cat_dict})
+        return game_dict
             
 
 
@@ -105,11 +110,10 @@ if __name__ == "__main__":
     myScraper = scraper('https://www.speedrun.com')
     myScraper.load_site()
     myScraper.search('Spyro the dragon')
-    # myScraper.nextCat()
-    # myScraper.getAllCatPBs()
-    pbs, players, vods = myScraper.getAllCatPBs()
-    print(pbs, players, vods)
-    
-    # cat_links = myScraper.getCatLinks()
-    # print(cat_links)
+    game_id = myScraper.driver.current_url[25:]
+    my_dict = myScraper.getAllGamePBs()
+
+    with open(game_id+'_PBs.json', mode='w') as f:
+        json.dump(my_dict, f)
+
     myScraper.driver.quit()

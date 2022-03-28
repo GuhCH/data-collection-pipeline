@@ -17,9 +17,8 @@ class scraper:
     # Loads site and accepts cookies (on sr.com)
     def load_site(self) -> webdriver.Firefox:
         self.driver.get(self.URL)
-        delay = 10
         try:
-            accept_cookies_button = WebDriverWait(self.driver, delay).until(EC.presence_of_element_located((By.XPATH, '//*[@class="fc-button fc-cta-consent fc-primary-button"]')))
+            accept_cookies_button = WebDriverWait(self.driver, 10).until(EC.presence_of_element_located((By.XPATH, '//*[@class="fc-button fc-cta-consent fc-primary-button"]')))
             accept_cookies_button.click()
             print('[INFO] cookies accepted')
             time.sleep(1)
@@ -36,9 +35,8 @@ class scraper:
         search_bar.click()
         time.sleep(0.5)
         search_bar.send_keys(query)
-        time.sleep(0.5)
         try:
-            result = self.driver.find_element(by=By.XPATH, value='//*[@class="ui-menu-item"]')
+            result = WebDriverWait(self.driver, 10).until(EC.presence_of_element_located((By.XPATH, '//*[@class="ui-menu-item"]')))
             result.click()
             print(f'[INFO] redirected to {self.driver.current_url}')
             time.sleep(0.5)
@@ -48,7 +46,7 @@ class scraper:
 
     # Collects all the times on the leaderboard for selected category (i.e. PBs of all players with runs on the board) + name of runner + link to VOD
     # and stores info in a dictionary
-    def getAllCatPBs(self):
+    def get_all_cat_PBs(self):
         all_runs = self.driver.find_element(by=By.XPATH, value='//table[@id="primary-leaderboard"]')
         names = all_runs.find_elements(by=By.XPATH, value='//span[@class="nobr" or @class="username"]')
         times = all_runs.find_elements(by=By.XPATH, value='//tr/td[@class="nobr center hidden-xs"][1]')
@@ -64,43 +62,34 @@ class scraper:
         return cat_dict
 
     # Switches page to next category. If on last category, returns to the initial category
-    def nextCat(self):
+    def next_cat(self):
         done = False
         try:
             misc_button = self.driver.find_element(by=By.XPATH, value='//a[@class="category category-tab active"]/following-sibling::a[1][@id="miscellaneous"]')
             misc_button.click()
-            next_cat = self.driver.find_element(by=By.XPATH, value='//a[@class="dropdown-item category"]')
+            next_category = self.driver.find_element(by=By.XPATH, value='//a[@class="dropdown-item category"]')
         except:
             try:
-                next_cat = self.driver.find_element(by=By.XPATH, value='//a[@class="category category-tab active"]/following-sibling::a')
+                next_category = self.driver.find_element(by=By.XPATH, value='//a[@class="category category-tab active"]/following-sibling::a')
             except:
                 try:
                     misc_button = self.driver.find_element(by=By.XPATH, value='//a[@id="miscellaneous"]')
                     misc_button.click()
-                    next_cat = self.driver.find_element(by=By.XPATH, value='//a[@class="dropdown-item category active"]/following-sibling::a')
+                    next_category = self.driver.find_element(by=By.XPATH, value='//a[@class="dropdown-item category active"]/following-sibling::a')
                 except:
-                    next_cat = self.driver.find_element(by=By.XPATH, value='//a[@class="category category-tab"]')
+                    next_category = self.driver.find_element(by=By.XPATH, value='//a[@class="category category-tab"]')
                     done = True
-        next_cat.click()
+        next_category.click()
         time.sleep(0.5)
         return done # Use this to break a loop cycling through all categories
 
-    # Gets links to all categories
-    def getCatLinks(self):
-        link_list = []
-        done = False
-        while done == False: # go next cat then store link so that specific link for initial cat is stored
-            done = self.nextCat()
-            link_list.append(self.driver.current_url)
-        return link_list
-
     # Gets PBs for all categories for game with links and IDs for each category, stores this info in a dictionary
-    def getAllGamePBs(self):
+    def get_all_game_PBs(self):
         game_dict = {'category': []}
         done = False
         while done == False:
-            done = self.nextCat()
-            cat_dict = self.getAllCatPBs()
+            done = self.next_cat()
+            cat_dict = self.get_all_cat_PBs()
             game_dict['category'].append({'id': self.driver.current_url[25:], 'uuid': str(uuid.uuid4()), 'link': self.driver.current_url, 'runs': cat_dict})
         return game_dict
             
@@ -111,7 +100,7 @@ if __name__ == "__main__":
     myScraper.load_site()
     myScraper.search('Spyro the dragon')
     game_id = myScraper.driver.current_url[25:]
-    my_dict = myScraper.getAllGamePBs()
+    my_dict = myScraper.get_all_game_PBs()
 
     with open(game_id+'_PBs.json', mode='w') as f:
         json.dump(my_dict, f)

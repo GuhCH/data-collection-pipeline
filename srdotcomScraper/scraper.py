@@ -11,7 +11,7 @@ import time
 import json
 import typing as t
 
-class scraper:
+class Scraper:
 
     '''
     This class acts as a web scraper for speedrun.com.
@@ -98,16 +98,20 @@ class scraper:
             misc_button = self.driver.find_element(by=By.XPATH, value='//a[@class="category category-tab active"]/following-sibling::a[1][@id="miscellaneous"]')
             misc_button.click()
             next_category = self.driver.find_element(by=By.XPATH, value='//a[@class="dropdown-item category"]')
-        except:    # myScraper.load_site()
+        except:
+            try:
+                next_category = self.driver.find_element(by=By.XPATH, value='//a[@class="category category-tab active"]/following-sibling::a')
+            except:
                 try:
                     misc_button = self.driver.find_element(by=By.XPATH, value='//a[@id="miscellaneous"]')
                     misc_button.click()
-                    next_category = self.driver.find_element(by=By.XPATH, value='//a[@class="dropdown-item category active"]/following-sibling::a')
+                    next_category = WebDriverWait(self.driver, 3).until(EC.presence_of_element_located((By.XPATH, '//a[@class="dropdown-item category active"]/following-sibling::a')))
                 except:
                     next_category = self.driver.find_element(by=By.XPATH, value='//a[@class="category category-tab"]')
                     done = True
         next_category.click()
         time.sleep(0.5)
+        print(f'[INFO] redirected to {self.driver.current_url}')
         return done # Use this to break a loop cycling through all categories
 
 
@@ -125,16 +129,3 @@ class scraper:
             cat_dict = self.get_all_cat_PBs()
             game_dict['category'].append({'id': self.driver.current_url[25:], 'uuid': str(uuid.uuid4()), 'link': self.driver.current_url, 'runs': cat_dict})
         return game_dict
-            
-
-
-if __name__ == "__main__":
-    myScraper = scraper()
-    myScraper.search('Spyro the dragon')
-    game_id = myScraper.driver.current_url[25:]
-    my_dict = myScraper.get_all_game_PBs()
-
-    with open(game_id+'_PBs.json', mode='w') as f:
-        json.dump(my_dict, f)
-
-    myScraper.driver.quit()

@@ -82,7 +82,7 @@ class Scraper:
                 vod_link = vod_div.get_attribute("href")
             except:
                 vod_link = None
-            cat_dict['runs'].append({'time': times[i].text, 'name': names[i].text, 'vod': vod_link})
+            cat_dict['runs'].append({'run_uuid': str(uuid.uuid4()),'time': times[i].text, 'name': names[i].text, 'vod': vod_link})
         return cat_dict
 
 
@@ -122,10 +122,10 @@ class Scraper:
         Returns:
             dict: a dictionary with info for all PBs for selected game
         '''
-        game_dict = {'category': []}
+        game_dict = {'game_uuid': str(uuid.uuid4()), 'category': []}
         done = False
         while done == False:
             done = self.next_cat()
             cat_dict = self.get_all_cat_PBs()
-            game_dict['category'].append({'id': self.driver.current_url[25:], 'uuid': str(uuid.uuid4()), 'link': self.driver.current_url, 'runs': cat_dict})
+            game_dict['category'].append({'id': self.driver.current_url[25:], 'cat_uuid': str(uuid.uuid4()), 'link': self.driver.current_url, 'runs': cat_dict})
         return game_dict

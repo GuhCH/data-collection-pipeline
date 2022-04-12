@@ -9,5 +9,5 @@ setup(
     author='Joe Gocher',
     license='MIT',
     packages=find_packages(),
-    install_requires=['selenium', 'uuid', 'requests', 'time', 'typing', 'json'],
+    install_requires=['selenium', 'uuid', 'requests', 'time', 'typing', 'json', 're'],
 )

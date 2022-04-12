@@ -10,6 +10,7 @@ import requests
 import time
 import json
 import typing as t
+import re
 
 class Scraper:
 
@@ -122,10 +123,10 @@ class Scraper:
         Returns:
             dict: a dictionary with info for all PBs for selected game
         '''
-        game_dict = {'game_uuid': str(uuid.uuid4()), 'category': []}
+        game_dict = {'game_id': re.split('#',self.driver.current_url[25:])[0], 'game_uuid': str(uuid.uuid4()), 'category': []}
         done = False
         while done == False:
             done = self.next_cat()
             cat_dict = self.get_all_cat_PBs()
-            game_dict['category'].append({'id': self.driver.current_url[25:], 'cat_uuid': str(uuid.uuid4()), 'link': self.driver.current_url, 'runs': cat_dict})
+            game_dict['category'].append({'cat_id': self.driver.current_url[25:], 'cat_uuid': str(uuid.uuid4()), 'link': self.driver.current_url, 'runs': cat_dict})
         return game_dict

@@ -1,39 +1,47 @@
-# DATA COLLECTION PIPELINE
+# speedrun.com data collection project
 
-Aims: use a webscraper to take leaderboard info from speedrun.com and format the data
+> this project implements a selenium based webscraper to collect leaderboard data from speedrun.com
 
-------------------[PACKAGES USED]------------------
+## initialising the scraper and navigating the site
 
+- a file 'scraper.py' is created in the folder './srdotcomScraper' in which we define the 'Scraper()' class
 
+- the package 'selenium' is used to open an automated firefox browser window. the private method '_load_site()' also accepts cookies.
 
-------------------[THE SCRAPER CLASS]------------------
+```python
+    myScraper = Scraper('speedrun.com')
+```
 
-- the scraper class can be called using myScraper = scraper(URL)
+- the 'search(query)' method allows the user to find a game of their choice using
+  
+```python
+    myScraper.search('<name of game>')
+```
 
-------------------[METHODS]------------------
+- the 'next_cat()' method allows the user to cycle through each category for the game being viewed, including miscellaneous categories. this method returns 'True' when returning to the initial category and 'False' in any other situation. this can be used to break a loop cycling through all categories.
 
-- __init__(URL)
-    - initialises selenium webdriver and stores a given URL
+```python
+    done = myScraper.next_cat()
+```
 
-- load_site()
-    - opens the URL provided when scraper class is called and accepts cookies
+## scraping the data
 
-- search(query)
-    - performs a search for 'query' in the speedrun.com search bar and navigates to the first result shown
+- the 'get_all_cat_PBs()' method is implemented to find the information for every run on the leaderboard (not including obsolete runs). it stores the runner name, time and vod link (if there is one) along with a unique uuid string for identification purposes in a dictionary format.
 
-- nextCat()
-    - navigates to next category for current game
-        - eg if the current url is 'speedrun.com/spyro1#any', calling nextCat() will navigate to 'speedrun.com/spyro1#120'
-    - if on last category will navigate back to first category
-        - returns boolean 'done = True' when this happens
-        - else returns 'done = False'. this can be used to break a loop eg in getCatLinks()
+```python
+    catDict = get_all_cat_PBs()
+```
 
-- getCatLinks()
-    - collects links to all categories for current game
-    - requires current page to be the first category
-    - returns links to all categories as a list
+- this method is used by the broader method 'get_all_game_PBs()', which uses 'next_cat()' to cycle through each category for a game and 'get_all_cat_PBs()' to get the times for each category. this data is then stored in a dictionary with the structure
 
-- getAllCatPBs()
-    - gets all PBs for the category being viewed (i.e. all times on the leaderboard)
-    - returns lists of runner names, times and links to vods
-        - if a run has no vod available, returns None for that list element4
+```python
+    gameDict = {'game_id': re.split('#',self.driver.current_url[25:])[0], 'game_uuid': str(uuid.uuid4()), 'category': []}
+```
+
+- where 'game_id' uses regex to take only the name of the game from the url (which is formatted like 'https://www.speedrun.com/spyro1#120'), 'game_uuid' is another uuid string and 'category' is a list that contains a readable id for each category, a uuid each the category, a link to each category and the data for each category provided by 'get_all_cat_PBs()'
+
+- this larger dictionary can then be saved to a json file with the name format game_id.json
+
+## testing
+
+- a testing suite is created and stored in the file 'test_scraper.py' in the folder './test'. this is file contains unit tests for each method within the 'Scraper()' class

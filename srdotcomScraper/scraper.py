@@ -127,3 +127,16 @@ class Scraper:
             cat_dict = self.get_all_cat_PBs()
             game_dict['category'].append({'cat_id': self.driver.current_url[25:], 'cat_uuid': str(uuid.uuid4()), 'link': self.driver.current_url, 'runs': cat_dict})
         return game_dict
+
+    def get_game_links(self, pages: int = 1) -> list:
+        self.driver.get('https://www.speedrun.com/games')
+        link_list = []
+        games = self.driver.find_elements(by=By.XPATH, value='//*[@id="list"]//a')
+        if pages != 1:
+            for i in range(pages-1):
+                games[len(games)-1].click()
+                games = self.driver.find_elements(by=By.XPATH, value='//*[@id="list"]//a')
+        for j in range(pages):
+            for k in range(50):
+                link_list.append(games[k+51*j].get_attribute('href'))
+        return link_list

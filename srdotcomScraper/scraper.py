@@ -42,9 +42,6 @@ class Scraper:
             print('[ERROR] timeout exception when trying to accept cookies')
 
     
-    # TO DO: -FIGURE OUT HOW TO SEARCH ONLY THE GAMES LIST, IGNORING THE SERIES LIST
-    #        -MAYBE IMPLEMENT searchGame AND searchUser AS SEPARATE FUNCTIONS
-    
     def search(self,query: str):
         '''
         Searches for 'query' in the search bar and chooses the first result
@@ -57,7 +54,7 @@ class Scraper:
         time.sleep(0.5)
         search_bar.send_keys(query)
         try:
-            result = WebDriverWait(self.driver, 10).until(EC.presence_of_element_located((By.XPATH, '//*[@class="ui-menu-item"]')))
+            result = WebDriverWait(self.driver, 10).until(EC.presence_of_element_located((By.XPATH, '//*[@class="dropdown-header ui-autocomplete-category"][text()="Games"]/following-sibling::li[1]')))
             result.click()
             print(f'[INFO] redirected to {self.driver.current_url}')
             time.sleep(0.5)
@@ -110,7 +107,7 @@ class Scraper:
                 except:
                     next_category = self.driver.find_element(by=By.XPATH, value='//a[@class="category category-tab"]')
                     done = True
-        next_category.click()
+        self.driver.execute_script(next_category.get_attribute('onclick'))
         time.sleep(0.5)
         print(f'[INFO] redirected to {self.driver.current_url}')
         return done # Use this to break a loop cycling through all categories

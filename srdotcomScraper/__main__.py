@@ -1,11 +1,11 @@
 from scraper import Scraper
+import file_utils
 import json
 
 myScraper = Scraper()
-myScraper.search('Spyro the dragon')
-my_dict = myScraper.get_all_game_PBs()
-
-with open('/home/guhch/AiCore/Data_Collection_Pipeline/data-collection-pipeline/srdotcomScraper/board_data/'+my_dict['game_id']+'.json', mode='w') as f:
-    json.dump(my_dict, f)
+myScraper.search('minecraft: ja')
+if not file_utils.check_already_scraped(myScraper.driver.current_url):
+    my_dict = myScraper.get_all_game_PBs()
+    file_utils.save_and_upload(my_dict)
 
 myScraper.driver.quit()

@@ -1,6 +1,19 @@
 import boto3
 import json
 import re
+import pandas as pd
+import psycopg2
+from sqlalchemy import create_engine
+
+DATABASE_TYPE = 'postgresql'
+DBAPI = 'psycopg2'
+ENDPOINT = 'srcboardscraper.co4inbd9d9j7.eu-west-2.rds.amazonaws.com'
+USER = 'postgres'
+PASSWORD = 'xzxzxzxzx'
+PORT = 5432
+DATABASE = 'postgres'
+engine = create_engine(f"{DATABASE_TYPE}+{DBAPI}://{USER}:{PASSWORD}@{ENDPOINT}:{PORT}/{DATABASE}")
+engine.connect()
 
 s3_client = boto3.client('s3')
 s3 = boto3.resource('s3')
@@ -47,3 +60,16 @@ def save_and_upload(game_dict: dict):
     with open(file_path, mode='w') as f:
         json.dump(game_dict, f)
     s3_client.upload_file(file_path, bucket, file_name)
+
+def upload_tables():
+    '''
+    Uploads data from S3 bucket to RDS as SQL tables
+    '''
+    for file in my_bucket.objects.all():
+        key = file.key
+        body = file.get()['Body'].read()
+        df = pd.read_json(str(body)[2:len(str(body))-1])
+        df1 = pd.json_normalize(df['category'])
+        for index, row in df1.iterrows():
+            df2 = pd.json_normalize(row['runs.runs'])
+            df2.to_sql(row['cat_id'], engine, if_exists='replace')

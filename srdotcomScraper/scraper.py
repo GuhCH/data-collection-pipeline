@@ -33,6 +33,7 @@ class Scraper:
         Loads site and accepts cookies (on sr.com)
         '''
         self.driver.get(self.URL)
+        self.driver.maximize_window()
         try:
             accept_cookies_button = WebDriverWait(self.driver, 10).until(EC.presence_of_element_located((By.XPATH, '//*[@class="fc-button fc-cta-consent fc-primary-button"]')))
             accept_cookies_button.click()
@@ -80,7 +81,7 @@ class Scraper:
                 vod_link = vod_div.get_attribute("href")
             except:
                 vod_link = None
-            cat_dict['runs'].append({'run_uuid': str(uuid.uuid4()),'time': times[i].text, 'name': names[i].text, 'vod': vod_link})
+            cat_dict['runs'].append({'run_uuid': str(uuid.uuid4()), 'time': times[i].text, 'name': names[i].text, 'vod': vod_link})
         return cat_dict
 
 
@@ -127,3 +128,16 @@ class Scraper:
             cat_dict = self.get_all_cat_PBs()
             game_dict['category'].append({'cat_id': self.driver.current_url[25:], 'cat_uuid': str(uuid.uuid4()), 'link': self.driver.current_url, 'runs': cat_dict})
         return game_dict
+
+    def get_game_links(self, pages: int = 1) -> list:
+        self.driver.get('https://www.speedrun.com/games')
+        link_list = []
+        games = self.driver.find_elements(by=By.XPATH, value='//*[@id="list"]//a')
+        if pages != 1:
+            for i in range(pages-1):
+                games[len(games)-1].click()
+                games = self.driver.find_elements(by=By.XPATH, value='//*[@id="list"]//a')
+        for j in range(pages):
+            for k in range(50):
+                link_list.append(games[k+51*j].get_attribute('href'))
+        return link_list

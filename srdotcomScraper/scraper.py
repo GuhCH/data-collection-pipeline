@@ -33,6 +33,7 @@ class Scraper:
         Loads site and accepts cookies (on sr.com)
         '''
         self.driver.get(self.URL)
+        self.driver.maximize_window()
         try:
             accept_cookies_button = WebDriverWait(self.driver, 10).until(EC.presence_of_element_located((By.XPATH, '//*[@class="fc-button fc-cta-consent fc-primary-button"]')))
             accept_cookies_button.click()
@@ -80,7 +81,7 @@ class Scraper:
                 vod_link = vod_div.get_attribute("href")
             except:
                 vod_link = None
-            cat_dict['runs'].append({'run_uuid': str(uuid.uuid4()),'time': times[i].text, 'name': names[i].text, 'vod': vod_link})
+            cat_dict['runs'].append({'run_uuid': str(uuid.uuid4()), 'time': times[i].text, 'name': names[i].text, 'vod': vod_link})
         return cat_dict
 
 

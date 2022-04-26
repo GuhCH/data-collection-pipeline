@@ -11,6 +11,9 @@ import time
 import json
 import typing as t
 import re
+import datetime as dt
+
+
 
 class Scraper:
 
@@ -61,11 +64,11 @@ class Scraper:
             time.sleep(0.5)
         except:
             print('[ERROR] no results found')
-        
+
 
     def get_all_cat_PBs(self):
         '''
-        Collects all the times on the leaderboard for selected category (i.e. PBs of all players with runs on the board) + name of runner + link to VOD
+        Collects all the times on the leaderboard for selected category (i.e. PBs of all players with runs on the board) in ISO format + name of runner + link to VOD
 
         Returns:
             dict: a dictionary with info for all PBs for selected category
@@ -74,6 +77,7 @@ class Scraper:
         names = all_runs.find_elements(by=By.XPATH, value='//span[@class="nobr" or @class="username"]')
         times = all_runs.find_elements(by=By.XPATH, value='//tr/td[@class="nobr center hidden-xs"][1]')
         vods = all_runs.find_elements(by=By.XPATH, value='//tr/td[@class="run-video nobr center hidden-xs hidden-md-down"]')
+        dtoptions = ['%Hh %Mm %Ss %fms','%Mm %Ss %fms', '%Ss %fms','%fms','%Hh %Mm %Ss','%Mm %Ss','%Ss']
         cat_dict = {'runs': []}
         for i in range(len(times)):
             try:
@@ -81,7 +85,13 @@ class Scraper:
                 vod_link = vod_div.get_attribute("href")
             except:
                 vod_link = None
-            cat_dict['runs'].append({'run_uuid': str(uuid.uuid4()), 'time': times[i].text, 'name': names[i].text, 'vod': vod_link})
+            for i in range(7):
+                try:
+                    run_to_datetime = dt.datetime.strptime(times[i].text, dtoptions[i])
+                    break
+                except: pass
+            run_to_ISO = re.split('T',dt.datetime.isoformat(run_to_datetime))[1]
+            cat_dict['runs'].append({'run_uuid': str(uuid.uuid4()), 'time': run_to_ISO, 'name': names[i].text, 'vod': vod_link})
         return cat_dict
 
 

@@ -12,5 +12,5 @@ for game in link_list:
             my_dict = myScraper.get_all_game_PBs()
             file_utils.save_and_upload(my_dict)
         except: pass
-
+file_utils.upload_tables()
 myScraper.driver.quit()

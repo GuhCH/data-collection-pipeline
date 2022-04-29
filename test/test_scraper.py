@@ -1,10 +1,10 @@
 import unittest
-from srdotcom_scraper import scraper
+from scraper import Scraper
 
 class scraperTestCase(unittest.TestCase):
 
     def setUp(self):
-        self.myScraper = scraper('https://www.speedrun.com')
+        self.myScraper = Scraper('https://www.speedrun.com')
 
 
     def test_load_site(self):

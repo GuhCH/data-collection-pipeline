@@ -32,7 +32,7 @@ def get_existing_data() -> list:
         existing_games.append(file.key[:len(file.key)-5])
     return existing_games
 
-def check_already_scraped(URL: str) -> bool:
+def check_game_already_scraped(URL: str, existing_data: list) -> bool:
     '''
     Checks if the current game has already been scraped.
 
@@ -41,14 +41,20 @@ def check_already_scraped(URL: str) -> bool:
     Returns:
         bool: True if game is found in s3 bucket, False if not found 
     '''
-    existing_data = get_existing_data()
     count = existing_data.count(re.split('#',URL[25:])[0])
     if count > 0:
         print('[INFO] data for game already found')
         return True
     else: return False
 
-def save_and_upload(game_dict: dict):
+def check_list_already_scraped(link_list: list, existing_data: list) -> list:
+    reduced_link_list = []
+    for game in link_list:
+        if game[25:] not in existing_data:
+            reduced_link_list.append(game)
+    return reduced_link_list
+
+def save_and_upload_S3(game_dict: dict):
     '''
     Saves collected data as a .json file and uploads to s3 bucket.
 
@@ -56,12 +62,24 @@ def save_and_upload(game_dict: dict):
         dict: run data for current game (found by Scraper.get_all_game_PBs())
     '''
     file_name = game_dict['game_id']+'.json'
-    file_path = '/home/guhch/AiCore/Data_Collection_Pipeline/data-collection-pipeline/srdotcomScraper/board_data/'+file_name
+    file_path = './srdotcomScraper/board_data/'+file_name
     with open(file_path, mode='w') as f:
         json.dump(game_dict, f)
     s3_client.upload_file(file_path, bucket, file_name)
+    
 
-def upload_tables():
+def upload_RDS(game_dict: dict):
+    df = pd.read_json(game_dict)
+    df1 = pd.json_normalize(df['category'])
+    for index,row in df1.iterrows():
+        try:
+            df2 = pd.json_normalize(row['runs.runs'])
+            df2.to_sql(row['cat_id'], engine, if_exists='replace')
+            print('[INFO] successfully uploaded '+row['cat_id']+' to RDS')
+        except:
+            print('[ERROR] failed to upload '+row['cat_id']+' to RDS')
+
+def upload_all_tables_from_bucket():
     '''
     Uploads data from S3 bucket to RDS as SQL tables
     '''
@@ -71,5 +89,9 @@ def upload_tables():
         df = pd.read_json(str(body)[2:len(str(body))-1])
         df1 = pd.json_normalize(df['category'])
         for index, row in df1.iterrows():
-            df2 = pd.json_normalize(row['runs.runs'])
-            df2.to_sql(row['cat_id'], engine, if_exists='replace')
+            try:
+                df2 = pd.json_normalize(row['runs.runs'])
+                df2.to_sql(row['cat_id'], engine, if_exists='replace')
+                print('[INFO] successfully uploaded '+row['cat_id']+' to RDS')
+            except:
+                print('[ERROR] failed to upload '+row['cat_id']+' to RDS')

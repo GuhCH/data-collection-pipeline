@@ -1,9 +1,11 @@
+from lib2to3.pgen2 import driver
 from xmlrpc.client import boolean
 from selenium import webdriver
 from selenium.webdriver.support.ui import WebDriverWait
 from selenium.webdriver.support import expected_conditions as EC
 from selenium.webdriver.common.by import By
 from selenium.common.exceptions import TimeoutException
+from selenium.webdriver.common.action_chains import ActionChains
 from bs4 import BeautifulSoup
 import uuid
 import requests
@@ -73,6 +75,9 @@ class Scraper:
         Returns:
             dict: a dictionary with info for all PBs for selected category
         '''
+        mouse_location = self.driver.find_element(by=By.XPATH, value='//a[@class="category category-tab"]')
+        action = ActionChains(self.driver)
+        action.move_to_element(mouse_location)
         all_runs = self.driver.find_element(by=By.XPATH, value='//table[@id="primary-leaderboard"]')
         names = all_runs.find_elements(by=By.XPATH, value='//span[@class="nobr" or @class="username"]')
         times = all_runs.find_elements(by=By.XPATH, value='//tr/td[@class="nobr center hidden-xs"][1]')
@@ -85,9 +90,9 @@ class Scraper:
                 vod_link = vod_div.get_attribute("href")
             except:
                 vod_link = None
-            for i in range(7):
+            for j in range(7):
                 try:
-                    run_to_datetime = dt.datetime.strptime(times[i].text, dtoptions[i])
+                    run_to_datetime = dt.datetime.strptime(times[i].text, dtoptions[j])
                     break
                 except: pass
             run_to_ISO = re.split('T',dt.datetime.isoformat(run_to_datetime))[1]
@@ -102,6 +107,12 @@ class Scraper:
         Returns:
             bool: True if returning to initial category.
         '''
+        try:
+            while True:
+                forward_button = self.driver.find_element(by=By.XPATH, value='//div[@id="pending-caret-forward" and not(@style="display: none;")]')
+                forward_button.click()
+                time.sleep(0.1)
+        except: pass
         done = False
         try:
             misc_button = self.driver.find_element(by=By.XPATH, value='//a[@class="category category-tab active"]/following-sibling::a[1][@id="miscellaneous"]')

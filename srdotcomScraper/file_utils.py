@@ -69,11 +69,11 @@ def save_and_upload_S3(game_dict: dict):
     
 
 def upload_RDS(game_dict: dict):
-    df = pd.read_json(game_dict)
+    df = pd.DataFrame.from_dict(game_dict)
     df1 = pd.json_normalize(df['category'])
     for index,row in df1.iterrows():
         try:
-            df2 = pd.json_normalize(row['runs.runs'])
+            df2 = pd.json_normalize(row['runs'])
             df2.to_sql(row['cat_id'], engine, if_exists='replace')
             print('[INFO] successfully uploaded '+row['cat_id']+' to RDS')
         except:
@@ -86,12 +86,14 @@ def upload_all_tables_from_bucket():
     for file in my_bucket.objects.all():
         key = file.key
         body = file.get()['Body'].read()
-        df = pd.read_json(str(body)[2:len(str(body))-1])
-        df1 = pd.json_normalize(df['category'])
-        for index, row in df1.iterrows():
-            try:
-                df2 = pd.json_normalize(row['runs.runs'])
-                df2.to_sql(row['cat_id'], engine, if_exists='replace')
-                print('[INFO] successfully uploaded '+row['cat_id']+' to RDS')
-            except:
-                print('[ERROR] failed to upload '+row['cat_id']+' to RDS')
+        try:
+            df = pd.read_json(str(body)[2:len(str(body))-1])
+            df1 = pd.json_normalize(df['category'])
+            for index, row in df1.iterrows():
+                try:
+                    df2 = pd.json_normalize(row['runs'])
+                    df2.to_sql(row['cat_id'], engine, if_exists='replace')
+                    print('[INFO] successfully uploaded '+row['cat_id']+' to RDS')
+                except:
+                    print('[ERROR] failed to upload '+row['cat_id']+' to RDS')
+        except: print('[ERROR] failed to upload ' + key + ' to RDS')

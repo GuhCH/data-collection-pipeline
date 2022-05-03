@@ -78,7 +78,8 @@ class Scraper:
         mouse_location = self.driver.find_element(by=By.XPATH, value='//a[@class="category category-tab"]')
         action = ActionChains(self.driver)
         action.move_to_element(mouse_location)
-        all_runs = self.driver.find_element(by=By.XPATH, value='//table[@id="primary-leaderboard"]')
+        try: all_runs = WebDriverWait(self.driver, 10).until(EC.presence_of_element_located((By.XPATH, '//table[@id="primary-leaderboard"]')))
+        except: return {'runs': None}
         names = all_runs.find_elements(by=By.XPATH, value='//span[@class="nobr" or @class="username"]')
         times = all_runs.find_elements(by=By.XPATH, value='//tr/td[@class="nobr center hidden-xs"][1]')
         vods = all_runs.find_elements(by=By.XPATH, value='//tr/td[@class="run-video nobr center hidden-xs hidden-md-down"]')
@@ -147,7 +148,7 @@ class Scraper:
         while done == False:
             done = self.next_cat()
             cat_dict = self.get_all_cat_PBs()
-            game_dict['category'].append({'cat_id': self.driver.current_url[25:], 'cat_uuid': str(uuid.uuid4()), 'link': self.driver.current_url, 'runs': cat_dict})
+            game_dict['category'].append({'cat_id': self.driver.current_url[25:], 'cat_uuid': str(uuid.uuid4()), 'link': self.driver.current_url, 'runs': cat_dict['runs']})
         return game_dict
 
     def get_game_links(self, pages: int = 1) -> list:

@@ -48,6 +48,15 @@ def check_game_already_scraped(URL: str, existing_data: list) -> bool:
     else: return False
 
 def check_list_already_scraped(link_list: list, existing_data: list) -> list:
+    '''
+    Checks list found by scraper.get_game_links() to see which games are already scraped, returns list of unscraped games
+
+    Args:
+        list: list of links to games found by scraper.get_game_links()
+        list: list of the IDs of all games in s3 bucket
+    Returns:
+        list: list of links to games in link_list that are not found in existing_data
+    '''
     reduced_link_list = []
     for game in link_list:
         if game[25:] not in existing_data:
@@ -69,6 +78,12 @@ def save_and_upload_S3(game_dict: dict):
     
 
 def upload_RDS(game_dict: dict):
+    '''
+    Uploads data for single game to RDS as SQL tables
+
+    Args:
+        dcit: run data for current game (found by Scraper.get_all_game_PBs())
+    '''
     df = pd.DataFrame.from_dict(game_dict)
     df1 = pd.json_normalize(df['category'])
     for index,row in df1.iterrows():

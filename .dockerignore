@@ -1,0 +1,8 @@
+.gitignore
+.dockerignore
+Dockerfile
+*.md
+*.log
+/test
+/srcScraper/board_data
+/srcScraper/notebook.ipynb

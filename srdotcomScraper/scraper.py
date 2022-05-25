@@ -152,6 +152,15 @@ class Scraper:
         return game_dict
 
     def get_game_links(self, pages: int = 1) -> list:
+        '''
+        Gets links to most active games on src
+
+        Args:
+            int: the number of pages of links to be found (there are 50 links per page)
+
+        Returns:
+            list: list of links to the (50*pages) most active games on src
+        '''
         self.driver.get('https://www.speedrun.com/games')
         link_list = []
         games = self.driver.find_elements(by=By.XPATH, value='//*[@id="list"]//a')
@@ -166,6 +175,12 @@ class Scraper:
         return link_list
 
     def get_all_game_links(self) -> list:
+        '''
+        Gets links to every game on src
+
+        Returns:
+            list: list of links to every game on src in descending order of activity
+        '''
         self.driver.get('https://www.speedrun.com/games')
         link_list = []
         games = self.driver.find_elements(by=By.XPATH, value='//*[@id="list"]//a')
@@ -181,3 +196,19 @@ class Scraper:
             for k in range(50):
                 link_list.append(games[k+51*j].get_attribute('href'))
         return link_list
+
+    def get_most_recent_run(self, last: str) -> str:
+        '''
+        Redirects to most recently run game on src, passing if that game has already been searched
+
+        Args:
+            str: the last game that was searched
+
+        Returns:
+            str: the game that was just searched
+        '''
+        self.driver.get('https://www.speedrun.com')
+        latest_button = self.driver.find_element(by=By.XPATH, value='//td[@class="game-name"]//a')
+        if latest_button.text != last:
+            latest_button.click()
+        return latest_button.text

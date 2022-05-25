@@ -209,6 +209,7 @@ class Scraper:
         '''
         self.driver.get('https://www.speedrun.com')
         latest_button = self.driver.find_element(by=By.XPATH, value='//td[@class="game-name"]//a')
-        if latest_button.text != last:
+        game_name = latest_button.text
+        if game_name != last:
             latest_button.click()
-        return latest_button.text
+        return game_name

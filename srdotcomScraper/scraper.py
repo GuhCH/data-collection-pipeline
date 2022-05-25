@@ -157,8 +157,26 @@ class Scraper:
         games = self.driver.find_elements(by=By.XPATH, value='//*[@id="list"]//a')
         if pages != 1:
             for i in range(pages-1):
+                self.driver.execute_script("window.scrollTo(0, document.body.scrollHeight);")
                 games[len(games)-1].click()
                 games = self.driver.find_elements(by=By.XPATH, value='//*[@id="list"]//a')
+        for j in range(pages):
+            for k in range(50):
+                link_list.append(games[k+51*j].get_attribute('href'))
+        return link_list
+
+    def get_all_game_links(self) -> list:
+        self.driver.get('https://www.speedrun.com/games')
+        link_list = []
+        games = self.driver.find_elements(by=By.XPATH, value='//*[@id="list"]//a')
+        pages = 1
+        while True:
+            try:
+                self.driver.execute_script("window.scrollTo(0, document.body.scrollHeight);")
+                games[len(games)-1].click()
+                games = self.driver.find_elements(by=By.XPATH, value='//*[@id="list"]//a')
+                pages += 1
+            except: break
         for j in range(pages):
             for k in range(50):
                 link_list.append(games[k+51*j].get_attribute('href'))

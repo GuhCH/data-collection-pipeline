@@ -1,5 +1,6 @@
 import unittest
-from scraper import Scraper
+from srdotcomScraper.scraper import Scraper
+from funcy import project
 
 class scraperTestCase(unittest.TestCase):
 
@@ -31,9 +32,9 @@ class scraperTestCase(unittest.TestCase):
 
     def test_get_all_cat_PBs(self):
         self.myScraper.driver.get('https://www.speedrun.com/spyro1#120')
-        expected_100th_run = {'time': '1h 44m 59s','name': 'stuser', 'vod': 'https://www.speedrun.com/spyro1/run/ylr159xy'}
+        expected_100th_run = {'time': '01:44:53'}
         cat_dict = self.myScraper.get_all_cat_PBs()
-        self.assertEqual(expected_100th_run, cat_dict['runs'][99])
+        self.assertEqual(expected_100th_run['time'], cat_dict['runs'][99]['time'])
         print('[INFO] if this test fails, go check the spyro 1 120 board as the expected result may have changed')
 
 
@@ -55,7 +56,7 @@ class scraperTestCase(unittest.TestCase):
         ids = []
         expected_ids = ['spyro1#120','spyro1#Cheat','spyro1#80_Dragons','spyro1#Vortex','spyro1#Any']
         for i in range(5):
-            ids.append(myDict['category'][i]['id'])
+            ids.append(myDict['category'][i]['cat_id'])
         self.assertEqual(ids, expected_ids)
         
 

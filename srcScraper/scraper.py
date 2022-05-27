@@ -29,10 +29,10 @@ class Scraper:
 
     def __init__(self,URL: str = 'https://www.speedrun.com'):
         self.URL = URL
-        self.driver = webdriver.Firefox()
+        self.driver = webdriver.Remote('http://127.0.0.1:4444/wd/hub', DesiredCapabilities.CHROME)
         self._load_site()
 
-    def _load_site(self) -> webdriver.Firefox:
+    def _load_site(self) -> webdriver.Remote:
         '''
         Loads site and accepts cookies (on sr.com)
         '''

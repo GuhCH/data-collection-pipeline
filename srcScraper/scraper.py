@@ -29,7 +29,7 @@ class Scraper:
 
     def __init__(self,URL: str = 'https://www.speedrun.com'):
         self.URL = URL
-        self.driver = webdriver.Remote('http://127.0.0.1:4444/wd/hub', DesiredCapabilities.CHROME)
+        self.driver = webdriver.Remote('http://127.0.0.1:4444/wd/hub', options=webdriver.ChromeOptions())
         self._load_site()
 
     def _load_site(self) -> webdriver.Remote:

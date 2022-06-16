@@ -29,7 +29,12 @@ class Scraper:
 
     def __init__(self,URL: str = 'https://www.speedrun.com'):
         self.URL = URL
-        self.driver = webdriver.Remote('http://127.0.0.1:4444/wd/hub', options=webdriver.ChromeOptions())
+        opts = webdriver.FirefoxOptions()
+        opts.add_argument('--disable-dev-shm-usage')
+        opts.add_argument('--no-sandbox')
+        opts.add_argument('--headless')
+        opts.add_argument('--window-size=1920,1080')
+        self.driver = webdriver.Firefox(options=opts)
         self._load_site()
 
     def _load_site(self) -> webdriver.Remote:
@@ -37,7 +42,6 @@ class Scraper:
         Loads site and accepts cookies (on sr.com)
         '''
         self.driver.get(self.URL)
-        self.driver.maximize_window()
         try:
             accept_cookies_button = WebDriverWait(self.driver, 10).until(EC.presence_of_element_located((By.XPATH, '//*[@class="fc-button fc-cta-consent fc-primary-button"]')))
             accept_cookies_button.click()
@@ -65,6 +69,7 @@ class Scraper:
             time.sleep(0.5)
         except:
             print('[ERROR] no results found')
+            pass
 
 
     def get_all_cat_PBs(self):
@@ -165,7 +170,7 @@ class Scraper:
         games = self.driver.find_elements(by=By.XPATH, value='//*[@id="list"]//a')
         if pages != 1:
             for i in range(pages-1):
-                self.driver.execute_script("window.scrollTo(0, document.body.scrollHeight);")
+                self.driver.execute_script("window.scrollTo(0, document.body.scrollHeight + 200);")
                 games[len(games)-1].click()
                 games = self.driver.find_elements(by=By.XPATH, value='//*[@id="list"]//a')
         for j in range(pages):

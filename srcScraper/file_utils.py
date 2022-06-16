@@ -1,6 +1,7 @@
 import boto3
 import json
 import re
+import os
 import pandas as pd
 import psycopg2
 from sqlalchemy import create_engine
@@ -15,10 +16,14 @@ DATABASE = 'postgres'
 engine = create_engine(f"{DATABASE_TYPE}+{DBAPI}://{USER}:{PASSWORD}@{ENDPOINT}:{PORT}/{DATABASE}")
 engine.connect()
 
-s3_client = boto3.client('s3')
+key = input('Access key ID: ')
+skey = input('Secret key: ')
+region = 'eu-west-2'
+s3_client = boto3.client('s3',aws_access_key_id=key,aws_secret_access_key=skey,region_name=region)
 s3 = boto3.resource('s3')
 bucket = 'srdotcom-board-data'
 my_bucket = s3.Bucket(bucket)
+os.makedirs(os.getcwd()+'/srcScraper/board_data', exist_ok=True)
 
 def get_existing_data() -> list:
     '''
@@ -71,10 +76,15 @@ def save_and_upload_S3(game_dict: dict):
         dict: run data for current game (found by Scraper.get_all_game_PBs())
     '''
     file_name = game_dict['game_id']+'.json'
-    file_path = './srdotcomScraper/board_data/'+file_name
-    with open(file_path, mode='w') as f:
-        json.dump(game_dict, f)
-    s3_client.upload_file(file_path, bucket, file_name)
+    file_path = os.getcwd()+'/srcScraper/board_data/'+file_name
+    print(file_path)
+    try:
+        with open(file_path, mode='w') as f:
+            json.dump(game_dict, f)
+    except: print('1')
+    try:
+        s3_client.upload_file(file_path, bucket, file_name)
+    except: print(2)
     
 
 def upload_RDS(game_dict: dict):
@@ -90,9 +100,10 @@ def upload_RDS(game_dict: dict):
         try:
             df2 = pd.json_normalize(row['runs'])
             df2.to_sql(row['cat_id'], engine, if_exists='replace')
-            print('[INFO] successfully uploaded '+row['cat_id']+' to RDS')
+            # print('[INFO] successfully uploaded '+row['cat_id']+' to RDS')
         except:
-            print('[ERROR] failed to upload '+row['cat_id']+' to RDS')
+            # print('[ERROR] failed to upload '+row['cat_id']+' to RDS')
+            pass
 
 def upload_all_tables_from_bucket():
     '''
@@ -108,7 +119,8 @@ def upload_all_tables_from_bucket():
                 try:
                     df2 = pd.json_normalize(row['runs'])
                     df2.to_sql(row['cat_id'], engine, if_exists='replace')
-                    print('[INFO] successfully uploaded '+row['cat_id']+' to RDS')
-                except:
-                    print('[ERROR] failed to upload '+row['cat_id']+' to RDS')
-        except: print('[ERROR] failed to upload ' + key + ' to RDS')
+                    # print('[INFO] successfully uploaded '+row['cat_id']+' to RDS')
+                except: pass
+                    # print('[ERROR] failed to upload '+row['cat_id']+' to RDS')
+        except: pass
+            # print('[ERROR] failed to upload ' + key + ' to RDS')

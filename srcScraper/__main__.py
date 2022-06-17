@@ -6,7 +6,7 @@ import os
 
 # existing_data = file_utils.get_existing_data()
 myScraper = Scraper()
-link_list = myScraper.get_game_links(3)
+link_list = myScraper.get_game_links(1)
 # link_list = myScraper.get_all_game_links()
 # reduced_link_list = file_utils.check_list_already_scraped(link_list, existing_data)
 

@@ -89,7 +89,7 @@ class Scraper:
         vods = all_runs.find_elements(by=By.XPATH, value='//tr/td[@class="run-video nobr center hidden-xs hidden-md-down"]')
         dtoptions = ['%Hh %Mm %Ss %fms','%Mm %Ss %fms', '%Ss %fms','%fms','%Hh %Mm %Ss','%Mm %Ss','%Ss']
         cat_dict = {'runs': []}
-        for i in range(len(times)):
+        for i in range(min([len(times),10])):
             try:
                 vod_div = vods[i].find_element(by=By.TAG_NAME, value='a')
                 vod_link = vod_div.get_attribute("href")

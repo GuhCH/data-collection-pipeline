@@ -1,0 +1,22 @@
+---
+name: update_docker_image
+on:
+  push:
+    branches:
+      - docker
+
+jobs:
+  docker:
+    name: Deploy image guhch/srcscraper:latest
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v1
+      - name: Build image
+        run: docker build guhch/srcscraper:latest .
+      - name: Login to DockerHub
+        run: >
+          docker login
+          -u ${{ secrets.DOCKER_HUB_USERNAME}}
+          -p ${{ secrets.DOCKER_HUB_ACCESS_TOKEN}}
+      - name: Push image
+        run: docker push guhch/srcscraper:latest

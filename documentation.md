@@ -4,7 +4,7 @@
 
 ## initialising the scraper and navigating the site
 
-- a file 'scraper.py' is created in the folder './srdotcomScraper' in which we define the 'Scraper()' class
+- a file 'scraper.py' is created in the folder '/srdotcomScraper' in which we define the 'Scraper()' class
 
 - the package 'selenium' is used to open an automated firefox browser window. the private method '_load_site()' also accepts cookies.
 
@@ -42,6 +42,28 @@
 
 - this larger dictionary can then be saved to a json file with the name format game_id.json
 
+## dealing with the data
+
+- the data collected by the Scraper() class is handled by the funcions defined in 'file_utils.py'. provides services to save a gameDict to a .json file, upload that file to an AWS S3 bucket and upload tables for each game to an AWS RDS database which can be accessed using pgAdmin
+
 ## testing
 
-- a testing suite is created and stored in the file 'test_scraper.py' in the folder './test'. this is file contains unit tests for each method within the 'Scraper()' class
+- a testing suite is created and stored in the files 'test_scraper.py' and 'test_file_utils.py' in the folder '/test'. these files contains unit tests for each method within the 'Scraper()' class and file_utils package
+
+## Docker
+
+- the program is packaged into a docker image (found on DockerHub at guhch/srcscraper) which contains the scraper as well as a copy of firefox with geckodriver installed
+
+- the containerised version of the scraper asks for an AWS access key and secret key to allow it to upload files to these cloud services
+
+## EC2
+
+- this docker image is run on an EC2 instance using tmux to allow it to run indefinitely
+
+## monitoring
+
+- another docker container running Prometheus is run on the EC2 instance, as well as node exporter
+
+- this allows us to monitor information from docker as well as the hardware metrics of the instance
+
+- this information is then shown on a Grafana dashboard

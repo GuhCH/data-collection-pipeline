@@ -1,6 +1,5 @@
 import unittest
 from srdotcomScraper.scraper import Scraper
-from funcy import project
 
 class scraperTestCase(unittest.TestCase):
 

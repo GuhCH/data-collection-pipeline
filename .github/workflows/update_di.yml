@@ -12,7 +12,7 @@ jobs:
     steps:
       - uses: actions/checkout@v1
       - name: Build image
-        run: docker build guhch/srcscraper:latest .
+        run: docker build -t guhch/srcscraper:latest .
       - name: Login to DockerHub
         run: >
           docker login

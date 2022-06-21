@@ -16,10 +16,8 @@ DATABASE = 'postgres'
 engine = create_engine(f"{DATABASE_TYPE}+{DBAPI}://{USER}:{PASSWORD}@{ENDPOINT}:{PORT}/{DATABASE}")
 engine.connect()
 
-key = input('Access key ID please: ')
-skey = input('Secret key please: ')
 region = 'eu-west-2'
-s3_client = boto3.client('s3',aws_access_key_id=key,aws_secret_access_key=skey,region_name=region)
+s3_client = boto3.client('s3',region_name=region)
 s3 = boto3.resource('s3')
 bucket = 'srdotcom-board-data'
 my_bucket = s3.Bucket(bucket)

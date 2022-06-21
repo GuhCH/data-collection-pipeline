@@ -67,3 +67,11 @@
 - this allows us to monitor information from docker as well as the hardware metrics of the instance
 
 - this information is then shown on a Grafana dashboard
+
+## CI/CD
+
+- CI/CD is implemented here using github acitons and crontab
+
+- a github workflow is implemented which builds a new docker image any time code is pushed to the docker branch and pushes this image to docker hub as guhch/srcscraper:latest
+
+- a set of cronjobs are implemented on the ec2 instance which stop the scraper, pull the latest version from docker hub and start it again
